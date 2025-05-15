@@ -145,7 +145,7 @@ Please read our [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for details.
 
 ## 📜 License
 
-MIT License © 2025 – \[YourName]
+MIT License © 2025 – \[hoed]
 
 ---
 
