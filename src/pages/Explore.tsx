@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, MessageCircle, Star, MapPin, 
-  Sliders, Calendar, User, Clock, Menu, Grid
+  Sliders, Calendar, User, Clock, Menu, Grid, Map as MapIcon
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { destinations, Destination } from "@/components/destinations";
+import DestinationMap from "@/components/DestinationMap";
 
 const Explore = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -127,7 +129,7 @@ const Explore = () => {
           </div>
         </div>
         
-        {/* Destinations */}
+        {/* Destinations with Map/List Tabs */}
         <div className="container mx-auto px-4 py-8">
           {filteredDestinations.length === 0 ? (
             <div className="text-center py-12">
@@ -140,91 +142,117 @@ const Explore = () => {
                 {filteredDestinations.length} {filteredDestinations.length === 1 ? 'Destination' : 'Destinations'} Found
               </h2>
               
-              {viewType === "grid" ? (
-                // Grid View
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 transform"
+              <Tabs defaultValue="grid" className="w-full">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="grid" className="flex items-center gap-2">
+                    <Grid size={16} />
+                    <span>Grid View</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="list" className="flex items-center gap-2">
+                    <Menu size={16} />
+                    <span>List View</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="map" className="flex items-center gap-2">
+                    <MapIcon size={16} />
+                    <span>Map View</span>
+                  </TabsTrigger>
+                </TabsList>
+                
+                {/* Grid View */}
+                <TabsContent value="grid">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 transform"
                      style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(20px)' }}>
-                  {filteredDestinations.map((destination) => (
-                    <div key={destination.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                      <img src={destination.image} alt={destination.name} className="w-full h-48 object-cover" />
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-xl font-semibold">{destination.name}</h3>
-                          <div className="flex items-center bg-yellow-100 px-2 py-1 rounded">
-                            <Star className="h-4 w-4 fill-yellow-500 stroke-yellow-500 mr-1" />
-                            <span className="text-sm font-medium">{destination.rating}</span>
+                    {filteredDestinations.map((destination) => (
+                      <div key={destination.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <img src={destination.image} alt={destination.name} className="w-full h-48 object-cover" />
+                        <div className="p-6">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-xl font-semibold">{destination.name}</h3>
+                            <div className="flex items-center bg-yellow-100 px-2 py-1 rounded">
+                              <Star className="h-4 w-4 fill-yellow-500 stroke-yellow-500 mr-1" />
+                              <span className="text-sm font-medium">{destination.rating}</span>
+                            </div>
+                          </div>
+                          <p className="text-gray-500 text-sm mb-3">
+                            <MapPin size={14} className="inline mr-1" />
+                            {destination.location}
+                          </p>
+                          <p className="text-gray-600 mb-4 line-clamp-3">{destination.description}</p>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {destination.tags.map((tag, index) => (
+                              <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <Button 
+                            asChild
+                            variant="outline" 
+                            className="w-full border-indonesia-teal text-indonesia-teal hover:bg-indonesia-teal hover:text-white"
+                          >
+                            <Link to={`/chat?destination=${destination.id}`}>
+                              <MessageCircle size={16} className="mr-1" />
+                              Ask AI about this place
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+                
+                {/* List View */}
+                <TabsContent value="list">
+                  <div className="space-y-4 transition-all duration-700 transform"
+                     style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(20px)' }}>
+                    {filteredDestinations.map((destination) => (
+                      <div key={destination.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row">
+                        <img src={destination.image} alt={destination.name} className="w-full md:w-48 h-48 object-cover" />
+                        <div className="p-6 flex-grow">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-xl font-semibold">{destination.name}</h3>
+                            <div className="flex items-center bg-yellow-100 px-2 py-1 rounded">
+                              <Star className="h-4 w-4 fill-yellow-500 stroke-yellow-500 mr-1" />
+                              <span className="text-sm font-medium">{destination.rating}</span>
+                            </div>
+                          </div>
+                          <p className="text-gray-500 text-sm mb-3">
+                            <MapPin size={14} className="inline mr-1" />
+                            {destination.location}
+                          </p>
+                          <p className="text-gray-600 mb-4">{destination.description}</p>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {destination.tags.map((tag, index) => (
+                              <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                {tag}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                        <p className="text-gray-500 text-sm mb-3">
-                          <MapPin size={14} className="inline mr-1" />
-                          {destination.location}
-                        </p>
-                        <p className="text-gray-600 mb-4 line-clamp-3">{destination.description}</p>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {destination.tags.map((tag, index) => (
-                            <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        <Button 
-                          asChild
-                          variant="outline" 
-                          className="w-full border-indonesia-teal text-indonesia-teal hover:bg-indonesia-teal hover:text-white"
-                        >
-                          <Link to={`/chat?destination=${destination.id}`}>
-                            <MessageCircle size={16} className="mr-1" />
-                            Ask AI about this place
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                // List View
-                <div className="space-y-4 transition-all duration-700 transform"
-                     style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(20px)' }}>
-                  {filteredDestinations.map((destination) => (
-                    <div key={destination.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row">
-                      <img src={destination.image} alt={destination.name} className="w-full md:w-48 h-48 object-cover" />
-                      <div className="p-6 flex-grow">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-xl font-semibold">{destination.name}</h3>
-                          <div className="flex items-center bg-yellow-100 px-2 py-1 rounded">
-                            <Star className="h-4 w-4 fill-yellow-500 stroke-yellow-500 mr-1" />
-                            <span className="text-sm font-medium">{destination.rating}</span>
-                          </div>
-                        </div>
-                        <p className="text-gray-500 text-sm mb-3">
-                          <MapPin size={14} className="inline mr-1" />
-                          {destination.location}
-                        </p>
-                        <p className="text-gray-600 mb-4">{destination.description}</p>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {destination.tags.map((tag, index) => (
-                            <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                              {tag}
-                            </span>
-                          ))}
+                        <div className="p-6 flex flex-col justify-center">
+                          <Button 
+                            asChild
+                            variant="outline" 
+                            className="border-indonesia-teal text-indonesia-teal hover:bg-indonesia-teal hover:text-white"
+                          >
+                            <Link to={`/chat?destination=${destination.id}`}>
+                              <MessageCircle size={16} className="mr-1" />
+                              Ask AI about this place
+                            </Link>
+                          </Button>
                         </div>
                       </div>
-                      <div className="p-6 flex flex-col justify-center">
-                        <Button 
-                          asChild
-                          variant="outline" 
-                          className="border-indonesia-teal text-indonesia-teal hover:bg-indonesia-teal hover:text-white"
-                        >
-                          <Link to={`/chat?destination=${destination.id}`}>
-                            <MessageCircle size={16} className="mr-1" />
-                            Ask AI about this place
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                </TabsContent>
+                
+                {/* Map View */}
+                <TabsContent value="map">
+                  <div className="h-[600px] rounded-xl overflow-hidden border border-gray-200 shadow-md">
+                    <DestinationMap destinations={filteredDestinations} />
+                  </div>
+                </TabsContent>
+              </Tabs>
             </>
           )}
         </div>

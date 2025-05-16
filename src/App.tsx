@@ -14,6 +14,7 @@ import Explore from "./pages/Explore";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
+// Create a new QueryClient instance outside of the component to prevent recreation on each render
 const queryClient = new QueryClient();
 
 const App = () => {

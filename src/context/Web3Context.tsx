@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ethers } from 'ethers';
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Web3ContextType {
   account: string | null;
@@ -76,6 +77,9 @@ export const Web3Provider: React.FC<{children: ReactNode}> = ({ children }) => {
           title: "Account Changed",
           description: `Connected to account ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
         });
+        
+        // Store wallet address in Supabase if user is authenticated
+        storeWalletAddress(accounts[0]);
       }
     };
     
@@ -104,6 +108,31 @@ export const Web3Provider: React.FC<{children: ReactNode}> = ({ children }) => {
     };
   }, [account]);
   
+  // Store wallet address in Supabase
+  const storeWalletAddress = async (walletAddress: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            wallet_address: walletAddress,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
+        
+        if (error) {
+          console.error("Error storing wallet address:", error);
+        }
+      }
+    } catch (error) {
+      console.error("Error accessing user data:", error);
+    }
+  };
+  
   const connectWallet = async () => {
     if (!window.ethereum) {
       toast({
@@ -128,6 +157,9 @@ export const Web3Provider: React.FC<{children: ReactNode}> = ({ children }) => {
       setChainId(network.chainId);
       
       localStorage.setItem('wisataWalletConnected', 'true');
+      
+      // Store wallet address in Supabase
+      await storeWalletAddress(accounts[0]);
       
       toast({
         title: "Wallet Connected",
