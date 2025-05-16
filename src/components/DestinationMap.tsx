@@ -9,7 +9,7 @@ interface DestinationMapProps {
 }
 
 // Initialize coordinates for Indonesia center
-const INDONESIA_CENTER = [-2.5489, 118.0149]; // Latitude, longitude
+const INDONESIA_CENTER: L.LatLngTuple = [-2.5489, 118.0149]; // Latitude, longitude as tuple
 const DEFAULT_ZOOM = 5;
 
 const DestinationMap = ({ destinations }: DestinationMapProps) => {
@@ -17,7 +17,7 @@ const DestinationMap = ({ destinations }: DestinationMapProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
   // Sample coordinates for destinations (in real app, these would come from the database)
-  const destinationCoordinates: Record<string, [number, number]> = {
+  const destinationCoordinates: Record<string, L.LatLngTuple> = {
     'borobudur': [-7.6079, 110.2038],
     'raja-ampat': [-0.5897, 130.1403],
     'komodo': [-8.5852, 119.4412],

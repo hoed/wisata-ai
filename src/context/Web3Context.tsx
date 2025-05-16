@@ -114,15 +114,15 @@ export const Web3Provider: React.FC<{children: ReactNode}> = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
+        // Update the user's profile with their wallet address
         const { error } = await supabase
           .from('profiles')
           .upsert({
             id: user.id,
             wallet_address: walletAddress,
             updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'id'
-          });
+          })
+          .eq('id', user.id);
         
         if (error) {
           console.error("Error storing wallet address:", error);
