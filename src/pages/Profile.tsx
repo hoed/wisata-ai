@@ -6,41 +6,45 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Calendar, Medal, MessageCircle, Clock, MapPin } from "lucide-react";
+import { Wallet, Calendar, Medal, MessageCircle, Clock, MapPin, Loader2 } from "lucide-react";
 import { useWeb3 } from "@/context/Web3Context";
+import { getUserBadges, Badge, UserBadge } from "@/services/badgeService";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const { account, isConnected, connectWallet } = useWeb3();
+  const { toast } = useToast();
   const [isVisible, setIsVisible] = useState(false);
+  const [badges, setBadges] = useState<UserBadge[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
   
-  // Mock data for user badges
-  const badges = [
-    {
-      id: 1,
-      name: "Borobudur Explorer",
-      image: "https://i.imgur.com/FaaFHjK.png",
-      description: "Visited the magnificent Borobudur Temple in Central Java",
-      date: "2023-09-15"
-    },
-    {
-      id: 2,
-      name: "Bali Beach Connoisseur",
-      image: "https://i.imgur.com/1A2B3C4.png",
-      description: "Explored at least 5 different beaches in Bali",
-      date: "2023-10-03"
-    },
-    {
-      id: 3,
-      name: "Culinary Adventurer",
-      image: "https://i.imgur.com/5D6E7F8.png",
-      description: "Tried 10 different traditional Indonesian dishes",
-      date: "2023-11-20"
-    }
-  ];
+  // Fetch user badges when account changes
+  useEffect(() => {
+    const fetchUserBadges = async () => {
+      if (isConnected && account) {
+        try {
+          setIsLoading(true);
+          const userBadges = await getUserBadges(account);
+          setBadges(userBadges);
+        } catch (error) {
+          console.error("Failed to fetch badges:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load your travel badges",
+            variant: "destructive"
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    fetchUserBadges();
+  }, [account, isConnected, toast]);
   
   // Mock data for bookings
   const bookings = [
@@ -177,33 +181,56 @@ const Profile = () => {
                 
                 {/* NFT Badges Tab */}
                 <TabsContent value="badges">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                    {badges.map((badge) => (
-                      <Card key={badge.id} className="overflow-hidden">
-                        <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
-                          <img 
-                            src={badge.image} 
-                            alt={badge.name} 
-                            className="w-full h-full object-cover" 
-                            onError={(e) => {
-                              // Fallback for broken images
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Badge+Image';
-                            }}
-                          />
-                        </div>
-                        <CardHeader>
-                          <div className="flex justify-between items-center">
-                            <CardTitle>{badge.name}</CardTitle>
-                            <Medal className="text-indonesia-gold" size={20} />
-                          </div>
-                          <CardDescription>{badge.description}</CardDescription>
-                        </CardHeader>
-                        <CardFooter className="text-sm text-gray-500">
-                          Earned on {formatDate(badge.date)}
-                        </CardFooter>
-                      </Card>
-                    ))}
-                  </div>
+                  {isLoading ? (
+                    <div className="py-12 flex justify-center items-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-indonesia-teal" />
+                      <span className="ml-2 text-lg text-indonesia-teal">Loading badges...</span>
+                    </div>
+                  ) : badges.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                      {badges.map((userBadge) => {
+                        const badge = userBadge.travel_badges;
+                        if (!badge) return null;
+                        
+                        return (
+                          <Card key={userBadge.id} className="overflow-hidden">
+                            <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+                              <img 
+                                src={badge.image_url || 'https://via.placeholder.com/400x200?text=Badge+Image'} 
+                                alt={badge.name} 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => {
+                                  // Fallback for broken images
+                                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Badge+Image';
+                                }}
+                              />
+                            </div>
+                            <CardHeader>
+                              <div className="flex justify-between items-center">
+                                <CardTitle>{badge.name}</CardTitle>
+                                <Medal className="text-indonesia-gold" size={20} />
+                              </div>
+                              <CardDescription>{badge.description}</CardDescription>
+                            </CardHeader>
+                            <CardFooter className="text-sm text-gray-500">
+                              Earned on {formatDate(userBadge.earned_at || '')}
+                            </CardFooter>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center">
+                      <Medal className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                      <h3 className="text-xl font-medium text-gray-600">No Badges Yet</h3>
+                      <p className="text-gray-500 mt-2 mb-6">
+                        Explore Indonesia to earn travel badges that showcase your adventures!
+                      </p>
+                      <Button asChild>
+                        <Link to="/explore">Start Exploring</Link>
+                      </Button>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 {/* Bookings Tab */}
